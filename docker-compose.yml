@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: logiq-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: logiq
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - logiq-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d logiq"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: logiq-grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - logiq-net
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+volumes:
+  postgres_data:
+  grafana_data:
+
+networks:
+  logiq-net:
+    driver: bridge
